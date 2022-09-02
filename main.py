@@ -46,14 +46,12 @@ class ExcelManager:
 class TalkingManager(ExcelManager):
         
     def id_opponent(self,id):
-        for i in range(1, self.sheet.max_column + 2):
-            if self.sheet.cell(row = 1, column = i).value == id:
-                print(f"[INFO] >> Id opponent {self.sheet.cell(row = self.read_settings('opponent'), column = i).value}")
-                return self.sheet.cell(row = i, column = self.read_settings("opponent")).value
+        print(f"[INFO] >> Id opponent {self.sheet.cell(row = self.find_id(id), column = self.read_settings('opponent')).value}")
+        return self.sheet.cell(row = self.find_id(id), column = self.read_settings('opponent')).value
 
     def search_opponent(self,id):
         list_ready = []
-        for i in range(1, self.sheet.max_column + 1):
+        for i in range(1, self.sheet.max_row + 1):
             if self.sheet.cell(row = i, column = self.read_settings("state")).value == "stay":
                 list_ready.append(self.sheet.cell(row = i, column = self.read_settings("id")).value)
         if list_ready == []:
@@ -75,7 +73,6 @@ class TalkingManager(ExcelManager):
         self.save_changes()
 
     def stay_state(self,id):
-        print(f"row - {self.find_id(id)}; colomn - {self.read_settings('state')}")
         self.sheet.cell(row= self.find_id(id) , column = self.read_settings("state")).value = "stay"
         self.save_changes()
 
@@ -131,10 +128,10 @@ def stay_in_turn(message):
 
 @client.message_handler(commands=['search'])
 def searche_opponent(message):
-    if talk.search_opponent(message.chat.id) == None:
+    opponent = talk.search_opponent(message.chat.id)
+    if opponent == None:
         client.send_message(message.chat.id,"Try later")
         return
-    opponent = talk.search_opponent(message.chat.id)
     print(opponent)
     client.send_message(message.chat.id,"You connect to talk\nIf you want to leave entre /leave")
     client.send_message(opponent,"You connect to talk\nIf you want to leave entre /leave")
@@ -147,9 +144,9 @@ def leave_chat(message):
     
 @client.message_handler(func=lambda message: True)
 def talking(message):
-    print(message.text)
     if "talk" in talk.check_state(message.chat.id):
-        client.send_message(talk.id_opponent(message.chat.id),f"Anonym >> {message.text}")
+        opponent = talk.id_opponent(message.chat.id)
+        client.send_message(opponent,f"Anonym >> {message.text}")
 
 
 
